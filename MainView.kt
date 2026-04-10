@@ -33,12 +33,16 @@ fun MainView() {
     val scope: CoroutineScope = rememberCoroutineScope()
     val controller = rememberNavController()
     val viewModel : MainViewModel = viewModel()
+    
+    // Fixed: Observing the ViewModel state properly
+    val currentScreen by viewModel.currentScreen
+    
     val navBackStackEntry by controller.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
-
-    val currentScreen = remember {
-        viewModel.currentScreen.value
+    val dialogOpen = remember{
+        mutableStateOf(false)
     }
+    
     val title = remember {
         mutableStateOf(currentScreen.title)
     }
@@ -75,7 +79,7 @@ fun MainView() {
                             scaffoldState.drawerState.close()
                         }
                         if (item.dRoute == "add_account") {
-                            // Handle Add Account
+                            dialogOpen.value = true
                         } else {
                             controller.navigate(item.dRoute)
                             title.value = item.dTitle
@@ -86,6 +90,7 @@ fun MainView() {
         }
     ) {
         Navigation(controller, viewModel, it)
+        AccountDialog(dialogOpen = dialogOpen )
     }
 }
 
@@ -119,13 +124,16 @@ fun DrawerItem(
 @Composable
 fun Navigation(navController: NavHostController, viewModel: MainViewModel, pd : PaddingValues) {
     NavHost(
-        navController as NavHostController, startDestination = Screen.DrawerScreen.AddAccount.route,
+        navController = navController, 
+        startDestination = Screen.DrawerScreen.Account.route,
         modifier = Modifier.padding(pd)
     ) {
-        composable(Screen.DrawerScreen.AddAccount.route) {
-
-        }
         composable(Screen.DrawerScreen.Account.route) {
+            AccountView()
+        }
+        composable(Screen.DrawerScreen.Subscription.route) {
+            Subscription()
         }
     }
 }
+
